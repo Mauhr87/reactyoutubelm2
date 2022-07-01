@@ -1,24 +1,54 @@
-import logo from './logo.svg';
 import './App.css';
+import Pelicula from './Pelicula';
+import PageWrapper from './PageWrapper';
+import Paginacion from "./Paginacion";
+import { useState, useEffect } from 'react';
+
 
 function App() {
+
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [peliculas, setPeliculas] = useState([]);
+  const TOTAL_POR_PAGINA = 4;
+
+  useEffect(() => {
+    buscarPeliculas();
+  }, []);
+
+  const buscarPeliculas = async () => {
+    let url = 'https://cors-anywhere.herokuapp.com/https://lucasmoy.dev/data/react/peliculas.json';
+
+    let respuesta = await fetch(url, {
+      "method": 'Get',
+      "headers": {
+        "Accept": 'application/json',
+        "Content-Type": 'application/json',
+        "Origin": 'https://lucasmoy.dev/'
+      }
+    });
+
+    let json = await respuesta.json();
+    setPeliculas(json);
+  }
+
+
+  const getTotalPaginas = () => {
+    let cantidadTotalPeliculas = peliculas.length;
+    return Math.ceil(cantidadTotalPeliculas / TOTAL_POR_PAGINA);
+  }
+
+  let peliculasPorPagina = peliculas.slice((paginaActual - 1) * TOTAL_POR_PAGINA, paginaActual * TOTAL_POR_PAGINA);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <PageWrapper>
+      
+      {peliculasPorPagina.map(pelicula => 
+          <Pelicula imagen={pelicula.img} titulo={pelicula.titulo} calificacion={pelicula.calificacion} director={pelicula.director} actores={pelicula.actores} fecha={pelicula.fecha} duracion={pelicula.duracion}>{pelicula.descripcion}</Pelicula>
+      )}
+      <Paginacion pagina={paginaActual} total={getTotalPaginas()} onChange={(pagina) =>{
+        setPaginaActual(pagina);
+      }}/>
+    </PageWrapper>
   );
 }
 
